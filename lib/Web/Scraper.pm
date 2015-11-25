@@ -51,13 +51,18 @@ class Web::Scraper {
   }
 
   multi method extract ($node) {
-    return %.rules.kv.map: -> $name, $rule {
+    return hash %.rules.kv.map: -> $name, $rule {
       $name => self.extract-rule($rule, $node);
     };
   }
 
   method extract-rule (Web::Scraper::Rule $rule, $node) {
     my @nodes = $node.findnodes($rule.selector);
+
+    if !@nodes {
+      die "{$rule.selector} matched no nodes inside: \n"
+          ~ $node.toString.decode("utf-8").substr(0, 30);
+    }
 
     if $rule.value ~~ Web::Scraper {
       return $rule.multiple

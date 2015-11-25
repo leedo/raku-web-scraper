@@ -11,6 +11,7 @@ my $scraper = scraper {
     process ".//h1", "title", "text";
     process ".//span[@class='date']", "date", "text";
     process ".//p[@class='excerpt']", "excerpt", "text";
+    process ".//a", "url", "@href";
   };
 };
 
@@ -19,6 +20,7 @@ isa-ok $scraper.rules<articles>.value, Web::Scraper, "is a nested scraper";
 
 my %data = $scraper.scrape(URI.new("http://www.arstechnica.com"));
 
-ok %data<articles>, "articles exist";
+ok %data<articles>.elems > 0, "articles exist";
+ok %data<articles>[0]<url>, "url is set";
 
 done-testing;
