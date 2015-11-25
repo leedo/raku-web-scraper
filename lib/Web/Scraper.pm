@@ -61,8 +61,7 @@ class Web::Scraper {
     my @nodes = $node.findnodes($rule.selector);
 
     if !@nodes {
-      die "{$rule.selector} matched no nodes inside: \n"
-          ~ $node.toString.decode("utf-8").substr(0, 30);
+      return $rule.multiple ?? [] !! Nil;
     }
 
     if $rule.value ~~ Web::Scraper {
