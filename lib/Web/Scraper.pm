@@ -9,14 +9,15 @@ use XML::LibXML::XPathContext:from<Perl5>;
 class Web::Scraper {
   has Web::Scraper::Rule %.rules;
 
-  sub process ($selector, $name is copy, $type) is export {
+  sub process ($selector, $name is copy, $value) is export {
     my $multiple = $name ~~ s/ '[]' $//;
-    my $*rule = Web::Scraper::Rule.new(
+    my $rule = Web::Scraper::Rule.new(
       :selector($selector),
-      :value($type),
+      :value($value),
       :multiple($multiple.Bool)
     );
-    $*scraper.add-rule($name, $*rule);
+
+    $*scraper.add-rule($name, $rule);
   }
 
   sub scraper(&code) is export {
