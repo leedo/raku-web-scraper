@@ -5,14 +5,16 @@ use HTTP::UserAgent;
 use Web::Scraper::Rule;
 use XML::LibXML:from<Perl5>;
 use XML::LibXML::XPathContext:from<Perl5>;
+use HTML::Selector::XPath:from<Perl5>;
 
 class Web::Scraper {
   has Web::Scraper::Rule %.rules;
 
   sub process ($selector, $name is copy, $value) is export {
     my $multiple = $name ~~ s/ '[]' $//;
+    my $xpath = HTML::Selector::XPath::selector_to_xpath($selector, "root", "./");
     my $rule = Web::Scraper::Rule.new(
-      :selector($selector),
+      :selector($xpath),
       :value($value),
       :multiple($multiple.Bool)
     );

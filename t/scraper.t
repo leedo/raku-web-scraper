@@ -7,11 +7,11 @@ use Web::Scraper;
 use URI;
 
 my $scraper = scraper {
-  process "//article[@data-post-id]", "articles[]", scraper {
-    process ".//h1", "title", "text";
-    process ".//span[@class='date']", "date", "text";
-    process ".//p[@class='excerpt']", "excerpt", "text";
-    process ".//a", "url", "@href";
+  process "article[data-post-id]", "articles[]", scraper {
+    process "h1", "title", "text";
+    process "span.date", "date", "text";
+    process "p.excerpt", "excerpt", "text";
+    process "a", "url", "@href";
   };
 };
 
@@ -22,5 +22,8 @@ my %data = $scraper.scrape(URI.new("http://www.arstechnica.com"));
 
 ok %data<articles>.elems > 0, "articles exist";
 ok %data<articles>[0]<url>, "url is set";
+
+say %data<articles>[0]<title>;
+say %data<articles>[0]<url>;
 
 done-testing;
