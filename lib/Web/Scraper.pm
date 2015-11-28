@@ -1,13 +1,13 @@
 use v6;
 
-use URI;
-use HTTP::UserAgent;
-use Web::Scraper::Rule;
-use XML::LibXML:from<Perl5>;
-use XML::LibXML::XPathContext:from<Perl5>;
-use HTML::Selector::XPath:from<Perl5>;
-
 class Web::Scraper {
+  use URI;
+  use HTTP::UserAgent;
+  use Web::Scraper::Rule;
+  use XML::LibXML:from<Perl5>;
+  use XML::LibXML::XPathContext:from<Perl5>;
+  use HTML::Selector::XPath:from<Perl5>;
+
   has Web::Scraper::Rule %.rules;
 
   sub process ($selector, $name is copy, $value) is export {
@@ -65,20 +65,6 @@ class Web::Scraper {
   }
 
   method extract-rule (Web::Scraper::Rule $rule, $node) {
-    my @nodes = $node.findnodes($rule.selector);
-
-    if !@nodes {
-      return $rule.multiple ?? [] !! Nil;
-    }
-
-    if $rule.value ~~ Web::Scraper {
-      return $rule.multiple
-        ?? [@nodes.map: { $rule.value.extract($_) }]
-        !! $rule.value.extract(@nodes[0]);
-    }
-
-    return $rule.multiple
-      ?? [@nodes.map: { $rule.extract($_) }]
-      !! $rule.extract(@nodes[0]);
+    return $rule.extract($node.findnodes($rule.selector));
   }
 }
