@@ -1,6 +1,5 @@
 use v6;
 
-class Web::Scraper { ... }
 class Web::Scraper::Rule {
   has $.selector is required;
   has $.value = "text";
@@ -17,10 +16,10 @@ class Web::Scraper::Rule {
   }
 
   multi method extract ($node) {
+    return $.value.extract($node)
+      if $.value.isa("Web::Scraper");
+
     given $.value {
-      when Web::Scraper {
-        return $node.value.extract($node);
-      }
       when "text" {
         return $node.textContent;
       }
