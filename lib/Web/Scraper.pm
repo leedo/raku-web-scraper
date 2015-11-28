@@ -48,7 +48,12 @@ class Web::Scraper {
   }
 
   multi method extract (Str $content) {
-    my $xml = XML::LibXML.new(:recover(2));
+    my $xml = XML::LibXML.new;
+    $xml.recover(1);
+    $xml.recover_silently(1);
+    $xml.keep_blanks(0);
+    $xml.expand_entities(1);
+    $xml.no_network(1);
     my $doc = $xml.load_html(:string($content));
     self.extract($doc);
   }

@@ -10,7 +10,10 @@ class Web::Scraper::Rule {
       when "text" {
         return $node.textContent;
       }
-      default {
+      when "html" {
+        return $node.toString;
+      }
+      when /^ '@' / {
         return $node.findvalue($.value);
       }
     }
