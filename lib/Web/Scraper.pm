@@ -16,7 +16,7 @@ class Web::Scraper {
     my $rule = Web::Scraper::Rule.new(
       :selector($xpath),
       :value($value),
-      :multiple($multiple.Bool)
+      :multiple(?$multiple)
     );
 
     $*scraper.add-rule($name, $rule);
