@@ -7,11 +7,11 @@ use Web::Scraper;
 use URI;
 
 my $scraper = scraper {
-  process "article[data-post-id]", "articles[]", scraper {
-    process "h1", "title", "text";
-    process "span.date", "date", "text";
+  process "li.article[data-post-id]", "articles[]", scraper {
+    process "h2", "title", "text";
+    process "time.date", "date", "text";
     process "p.excerpt", "excerpt", "text";
-    process "a", "url", "@href";
+    process "h2 a", "url", "@href";
   };
 };
 
