@@ -4,8 +4,8 @@ class Web::Scraper {
   use URI;
   use HTTP::UserAgent;
   use Web::Scraper::Rule;
-  use XML::LibXML:from<Perl5>;
-  use XML::LibXML::XPathContext:from<Perl5>;
+  use LibXML;
+  use LibXML::XPath::Context;
   use HTML::Selector::XPath:from<Perl5>;
 
   has Web::Scraper::Rule %.rules;
@@ -48,13 +48,17 @@ class Web::Scraper {
   }
 
   multi method extract (Str $content) {
-    my $xml = XML::LibXML.new;
-    $xml.recover(1);
-    $xml.recover_silently(1);
-    $xml.keep_blanks(0);
-    $xml.expand_entities(1);
-    $xml.no_network(1);
-    my $doc = $xml.load_html(:string($content));
+    my $parser = LibXML.new;
+    my $doc = $parser.parse(
+        :string($content),
+        :html,
+        :recover,
+        :suppress-errors,
+        :!pedantic-parser
+        :!blanks,
+        :expand-entities,
+        :!network,
+    );
     self.extract($doc);
   }
 
@@ -65,6 +69,7 @@ class Web::Scraper {
   }
 
   method extract-rule (Web::Scraper::Rule $rule, $node) {
-    return $rule.extract($node.findnodes($rule.selector));
+      warn $rule.selector;
+      return $rule.extract($node.findnodes($rule.selector));
   }
 }
