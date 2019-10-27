@@ -40,13 +40,8 @@ class HTML::Selector::XPath {
     # negation (e.g. [input!="text"]) isn't implemented in CSS, but include it anyway:
     given $op {
       when '!=' { "@$left!='$right'" }
-
-      # substring attribute match
       when '~=' { "contains(concat(' ', @$left, ' '), ' $right ')" }
-
-      # real substring attribute match
       when '*=' { "contains(@$left, '$right')" }
-
       when '|=' { "@$left='$right' or starts-with(@$left, '$right-')" }
       when '^=' { "starts-with(@$left,'$right')" }
       when '$=' {
@@ -172,40 +167,22 @@ class HTML::Selector::XPath {
       # Ignore pseudoclasses/pseudoelements
       while $rule.nibble($PSEUDO) {
         given $rule.match[0] {
-          when 'disabled' {
-            @parts.push: '[@disabled]';
-          }
-          when 'checked' {
-            @parts.push: '[@checked]';
-          }
-          when 'selected' {
-            @parts.push: '[@selected]';
-          }
-          when 'text' {
-            @parts.push: '*[@type="text"]';
-          }
-          when 'first-child' {
-            # Translates to :nth-child(1)
-            @parts.push: nth-child(1);
-          }
-          when 'last-child' {
-            @parts.push: nth-last-child(1);
-          }
-          when 'only-child' {
-            @parts.push: nth-child(1), nth-last-child(1);
-          }
+          when 'disabled'    { @parts.push: '[@disabled]' }
+          when 'checked'     { @parts.push: '[@checked]' }
+          when 'selected'    { @parts.push: '[@selected]' }
+          when 'text'        { @parts.push: '*[@type="text"]' }
+          when 'first-child' { @parts.push: nth-child(1) }
+          when 'last-child'  { @parts.push: nth-last-child(1) }
+          when 'only-child'  { @parts.push: nth-child(1), nth-last-child(1) }
+
           when /^lang\((<[\w\-]>+)\)$/ {
             @parts.push: "[\@xml:lang='$_' or starts-with(\@xml:lang, '$_-')]";
           }
-          when /^nth\-child\(odd\)$/ {
-            @parts.push: nth-child(2, 1);
-          }
-          when /^nth\-child\(even\)$/ {
-            @parts.push: nth-child(2, 0);
-          }
-          when /^nth\-child\((\d+)\)$/ {
-            @parts.push: nth-child($_);
-          }
+
+          when 'nth-child(odd)'        { @parts.push: nth-child(2, 1) }
+          when 'nth-child(even)'       { @parts.push: nth-child(2, 0) }
+          when /^nth\-child\((\d+)\)$/ { @parts.push: nth-child($_) }
+
           when /^nth\-child\((\d+)n<[\+(\d+)]>?\)$/ {
             @parts.push: nth-child($_, $rule.match[1]||0);
           }
@@ -215,16 +192,12 @@ class HTML::Selector::XPath {
           when /^nth\-last\-child\((\d+)n<[\+(\d+)]>?\)$/ {
             @parts.push: nth-last-child($_, $rule.match[1]||0);
           }
-          when /^first\-of\-type$/ {
-            @parts.push: "[1]";
-          }
-          when /^nth\-of\-type\((\d+)\)$/ {
-            @parts.push: "[$_]";
-          }
-          when /^last\-of\-type$/ {
-            @parts.push: "[last()]";
-          }
-          when /^contains\($/ {
+
+          when 'first-of-type'            { @parts.push: "[1]" }
+          when /^nth\-of\-type\((\d+)\)$/ { @parts.push: "[$_]" }
+          when 'last-of-type'             { @parts.push: "[last()]" }
+
+          when 'contains(' {
             if $rule.nibble(/^\s*\"(<-["]>*)\"\s*\)/) {
               @parts.push: qq{[text()[contains(string(.),"{$rule.match[0]}")]]};
             } elsif $rule.nibble(/^\s*\'(<-[']>*)\'\s*\)/ ) {
@@ -234,37 +207,22 @@ class HTML::Selector::XPath {
               #die "Malformed string in :contains(): '$rule'";
             };
           }
-          when 'root' {
-            # This will give surprising results if you do E > F:root
-            @parts[$root-index] = $root;
-          }
-          when 'empty' {
-            @parts.push: "[not(* or text())]";
-          }
-          default {
-            die "Can't translate '$_' pseudo-class";
-          }
+
+          # This will give surprising results if you do E > F:root
+          when 'root'  { @parts[$root-index] = $root }
+          when 'empty' { @parts.push: "[not(* or text())]" }
+          default      { die "Can't translate '$_' pseudo-class" }
         }
       }
 
       # Match combinators (whitespace, >, + and ~)
       if $rule.nibble($COMBINATOR) {
         given $rule.match[0] {
-          when /\>/ {
-            @parts.push: "/";
-          }
-          when /\+/ {
-            @parts.push: "/following-sibling::*[1]/self::";
-          }
-          when /\~/ {
-            @parts.push: "/following-sibling::";
-          }
-          when /^\s*$/ {
-            @parts.push: "//"
-          }
-          default {
-            die "Weird combinator '$_'"
-          }
+          when /\>/    { @parts.push: "/" }
+          when /\+/    { @parts.push: "/following-sibling::*[1]/self::" }
+          when /\~/    { @parts.push: "/following-sibling::" }
+          when /^\s*$/ { @parts.push: "//" }
+          default      { die "Weird combinator '$_'" }
         }
 
         # new context
