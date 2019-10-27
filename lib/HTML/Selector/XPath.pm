@@ -1,5 +1,19 @@
 use v6;
 
+my $IDENT   = rx{ <!after [<[0..9]>|\-<[- 0..9]>]><[ - _ a..z A..Z 0..9 ]>+ };
+my $ELEMENT = rx{ ^(<[#\.]>?) (<-[\s\'\"#\./:@,=~>()\[\]|]>*)((\|)(<[a..zA..Z0..9\\*_-]>*))?};
+my $ATTR1   = rx{^\[ \s* (<$IDENT>) \s* \]};
+my $BADATTR = rx{^\[};
+my $ATTRN   = rx{ ^\:not\( };
+my $PSEUDO  = rx{ ^\:(<[ ( ) a..z A..Z 0..9 _ + - ]>+) };
+my $COMBINATOR = rx{ ^ ( \s* <[>+~\s]> <!before \,> ) };
+my $COMMA = rx{ ^ \s* \, \s* };
+my $ATTR2 = rx{
+    ^\[ \s* ($IDENT) \s*
+    ( <[ ~ | * ^ $ ! ]>? \= ) \s*
+    [ (<$IDENT>) | \" (<-["]>*) \" | \'(<-[']>*)\' ] \s* \]
+};
+
 class HTML::Selector::XPath::Rule {
     has $.selector = '';
     has $.match;
@@ -8,7 +22,7 @@ class HTML::Selector::XPath::Rule {
     method trim  { $!selector.=trim }
 
     method test($pattern) {
-        $!selector ~~ $pattern;
+        $!selector ~~ /<$pattern>/;
     }
 
     method nibble($pattern) {
@@ -19,20 +33,6 @@ class HTML::Selector::XPath::Rule {
 
 class HTML::Selector::XPath {
 	has Str $.selector;
-
-    my $IDENT   = rx/ <!after [<[0..9]>|\-<[- 0..9]>]><[ - _ a..z A..Z 0..9 ]>+ /;
-    my \ELEMENT = rx/:i ^(<[#\.]>?) (<-[\s\'\"#\./:@,=~>()\[\]|]>*)((\|)(<[a..z0..9\\*_-]>*))?/;
-    my \ATTR1   = rx/^\[ \s* (<$IDENT>) \s* \]/;
-    my \BADATTR = rx/^\[/;
-    my \ATTRN   = rx/:i ^\:not\( /;
-    my \PSEUDO  = rx/:i ^\:(<[ ( ) a..z 0..9 _ + - ]>+) /;
-    my \COMBINATOR = rx/:i ^ ( \s* <[>+~\s]> <!before \,> ) /;
-    my \COMMA = rx/:i ^ \s* \, \s* /;
-    my \ATTR2 = rx/
-        ^\[ \s* (<$IDENT>) \s*
-        ( <[ ~ | * ^ $ ! ]>? \= ) \s*
-        [ (<$IDENT>) | \" (<-["]>*) \" | \'(<-[']>*)\' ] \s* \]
-    /;
 
 	sub convert-attribute-match($match) {
         my ($left, $op, $right) = ($match[0], $match[1], $match.tail);
@@ -110,12 +110,12 @@ class HTML::Selector::XPath {
 
 			# Prepend explicit first selector if we have an implicit selector
 			# (that is, if we start with a combinator)
-			if $rule.test(COMBINATOR) {
+			if $rule.test($COMBINATOR) {
 				$rule.selector = "* {$rule.selector}";
 			}
 
 			# Match elements
-			if ($rule.nibble(ELEMENT)) {
+			if ($rule.nibble($ELEMENT)) {
 				my ($id-class,$name,$lang) = ($rule.match[0],$rule.match[1],$rule.match[2]);
 
 				my $tag = $id-class.Str eq '' ?? $name || '*' !! '*';
@@ -141,27 +141,27 @@ class HTML::Selector::XPath {
 
 			# Match attribute selectors
             
-			if $rule.nibble(ATTR2) {
+			if $rule.nibble($ATTR2) {
 				@parts.push: "[", convert-attribute-match( $rule.match ), "]";
-			} elsif $rule.nibble(ATTR1) {
+			} elsif $rule.nibble($ATTR1) {
 				# If we have no tag output yet, write the tag:
 				if ! $wrote-tag++ {
 					@parts.push: '*';
 				}
 				@parts.push: "[\@{$rule.match[0]}]";
-			} elsif $rule.test(BADATTR) {
+			} elsif $rule.test($BADATTR) {
 				die "Invalid attribute-value selector '$rule'";
 			}
 
 			# Match negation
-			if $rule.nibble(ATTRN) {
+			if $rule.nibble($ATTRN) {
 				# Now we parse the rest, and after parsing the subexpression
 				# has stopped, we must find a matching closing parenthesis:
-				if $rule.nibble(ATTR2) {
+				if $rule.nibble($ATTR2) {
 					@parts.push: "[not(", convert-attribute-match( $rule.match), ")]";
-				} elsif $rule.nibble(ATTR1) {
+				} elsif $rule.nibble($ATTR1) {
 					@parts.push: "[not(\@{$rule.match[0]})]";
-				} elsif $rule.test(BADATTR) {
+				} elsif $rule.test($BADATTR) {
 					die "Invalid negated attribute-value selector ':not({$rule.selector})'";
 				} else {
 					my ( @new-parts, $leftover ) = $.consume( $rule, %parms );
@@ -176,7 +176,7 @@ class HTML::Selector::XPath {
 			}
 
 			# Ignore pseudoclasses/pseudoelements
-			while $rule.nibble(PSEUDO) {
+			while $rule.nibble($PSEUDO) {
                 given $rule.match[0] {
                     when 'disabled' {
                         @parts.push: '[@disabled]';
@@ -254,7 +254,7 @@ class HTML::Selector::XPath {
 			}
 
 			# Match combinators (whitespace, >, + and ~)
-			if $rule.nibble(COMBINATOR) {
+			if $rule.nibble($COMBINATOR) {
                 given $rule.match[0] {
                     when /\>/ {
                         @parts.push: "/";
@@ -278,7 +278,7 @@ class HTML::Selector::XPath {
 			}
 
 			# Match commas
-			if $rule.nibble(COMMA) {
+			if $rule.nibble($COMMA) {
 				@parts.push: " | ", "$root/"; # ending one rule and beginning another
 				$root-index = @parts.elems;
 				$wrote-tag = 0;
