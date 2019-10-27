@@ -38,7 +38,7 @@ class HTML::Selector::XPath {
     my ($left, $op, $right) = ($match[0], $match[1], $match.tail);
 
     # negation (e.g. [input!="text"]) isn't implemented in CSS, but include it anyway:
-    return given $op {
+    given $op {
       when '!=' { "@$left!='$right'" }
 
       # substring attribute match
