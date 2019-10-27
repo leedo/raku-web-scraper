@@ -50,14 +50,14 @@ class Web::Scraper {
   multi method extract (Str $content) {
     my $parser = LibXML.new;
     my $doc = $parser.parse(
-        :string($content),
-        :html,
-        :recover,
-        :suppress-errors,
-        :!pedantic-parser
-        :!blanks,
-        :expand-entities,
-        :!network,
+      :string($content),
+      :html,
+      :recover,
+      :suppress-errors,
+      :!pedantic-parser
+      :!blanks,
+      :expand-entities,
+      :!network,
     );
     self.extract($doc);
   }
@@ -69,6 +69,6 @@ class Web::Scraper {
   }
 
   method extract-rule (Web::Scraper::Rule $rule, $node) {
-      return $rule.extract($node.findnodes($rule.selector));
+    return $rule.extract($node.findnodes($rule.selector));
   }
 }
