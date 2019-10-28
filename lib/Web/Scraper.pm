@@ -6,13 +6,13 @@ class Web::Scraper {
   use Web::Scraper::Rule;
   use LibXML;
   use LibXML::XPath::Context;
-  use HTML::Selector::XPath;
+  use CSS::Selector::To::XPath;
 
   has Web::Scraper::Rule %.rules;
 
-  sub process ($selector, $name is copy, $value) is export {
+  sub process ($css, $name is copy, $value) is export {
     my $multiple = $name ~~ s/ '[]' $//;
-    my $xpath = HTML::Selector::XPath.new(:$selector).to-xpath(:root('./'));
+    my $xpath = CSS::Selector::To::XPath.new.selector-to-xpath(:$css);
     my $rule = Web::Scraper::Rule.new(
       :selector($xpath),
       :value($value),
