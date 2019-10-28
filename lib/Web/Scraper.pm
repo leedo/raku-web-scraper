@@ -29,7 +29,7 @@ class Web::Scraper {
   }
 
   method add-rule (Str $name, Web::Scraper::Rule $rule) {
-    %.rules{$name} = $rule;
+    %!rules{$name} = $rule;
   }
 
   multi method scrape (URI $uri) {
@@ -37,14 +37,14 @@ class Web::Scraper {
     my $res = $ua.get($uri.Str);
 
     if $res.is-success {
-      return self.extract($res.content);
+      return $.extract($res.content);
     }
 
     die $res.status-line;
   }
 
   multi method scrape (Str $content) {
-    return self.extract($content);
+    return $.extract($content);
   }
 
   multi method extract (Str $content) {
@@ -59,12 +59,12 @@ class Web::Scraper {
       :expand-entities,
       :!network,
     );
-    self.extract($doc);
+    $.extract($doc);
   }
 
   multi method extract ($node) {
-    return hash %.rules.kv.map: -> $name, $rule {
-      $name => self.extract-rule($rule, $node);
+    return hash %!rules.kv.map: -> $name, $rule {
+      $name => $.extract-rule($rule, $node);
     };
   }
 

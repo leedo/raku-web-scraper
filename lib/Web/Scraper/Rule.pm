@@ -6,19 +6,19 @@ class Web::Scraper::Rule {
   has $.multiple = False;
 
   multi method extract (@nodes where { !.elems }) {
-    $.multiple ?? [] !! Nil;
+    $!multiple ?? [] !! Nil;
   }
 
   multi method extract (@nodes) {
-    $.multiple
-      ?? [@nodes.map: {self.extract($_)}]
-      !! self.extract(@nodes[0]);
+    $!multiple
+      ?? [@nodes.map: {$.extract($_)}]
+      !! $.extract(@nodes[0]);
   }
 
   multi method extract ($node) {
-    given $.value {
+    given $!value {
       when *.isa("Web::Scraper") {
-        $.value.extract($node);
+        $!value.extract($node);
       }
       when "text" {
         $node.textContent;
@@ -27,7 +27,7 @@ class Web::Scraper::Rule {
         $node.toString;
       }
       when /^ '@' / {
-        $node.findvalue($.value);
+        $node.findvalue($!value);
       }
     }
   }
