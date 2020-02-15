@@ -33,7 +33,7 @@ class Web::Scraper {
   }
 
   multi method scrape (URI $uri) {
-    my $ua = HTTP::UserAgent.new;
+    my $ua = HTTP::UserAgent.new(:useragent<p6-web-scraper/0.0.1>);
     my $res = $ua.get($uri.Str);
 
     if $res.is-success {
@@ -62,13 +62,13 @@ class Web::Scraper {
     $.extract($doc);
   }
 
-  multi method extract ($node) {
+  multi method extract (LibXML::Node $node) {
     return hash %!rules.kv.map: -> $name, $rule {
       $name => $.extract-rule($rule, $node);
     };
   }
 
-  method extract-rule (Web::Scraper::Rule $rule, $node) {
+  method extract-rule (Web::Scraper::Rule $rule, LibXML::Node $node) {
     return $rule.extract($node.findnodes($rule.selector));
   }
 }
