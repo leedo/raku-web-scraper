@@ -12,13 +12,8 @@ class Web::Scraper {
 
   sub process ($css, $name is copy, $value) is export {
     my $multiple = $name ~~ s/ '[]' $//;
-    my $xpath = CSS::Selector::To::XPath.new.selector-to-xpath(:$css);
-    my $rule = Web::Scraper::Rule.new(
-      :selector($xpath),
-      :value($value),
-      :multiple(?$multiple)
-    );
-
+    my $selector = CSS::Selector::To::XPath.new.selector-to-xpath(:$css);
+    my $rule = Web::Scraper::Rule.new(:$selector, :$value, :$multiple);
     $*scraper.add-rule($name, $rule);
   }
 
