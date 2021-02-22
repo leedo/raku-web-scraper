@@ -17,9 +17,6 @@ class Web::Scraper::Rule {
 
   multi method extract ($node) {
     given $!value {
-      when *.isa("Web::Scraper") {
-        $!value.extract($node);
-      }
       when "text" {
         $node.textContent;
       }
@@ -28,6 +25,9 @@ class Web::Scraper::Rule {
       }
       when /^ '@' / {
         $node.findvalue($!value);
+      }
+      when *.^can("extract") {
+        $!value.extract($node);
       }
     }
   }
