@@ -1,0 +1,33 @@
+{
+    "meta-version"  : "0",
+    "perl"          : "6.c",
+    "name"          : "Web::Scraper",
+    "version"       : "0.0.1",
+    "auth"          : "github:leedo",
+    "description"   : "Web scraper",
+    "license"       : "Artistic-2.0",
+    "build-depends" : [ ],
+    "test-depends"  : [ "Test" ],
+    "depends"       : [
+        "URI",
+        "HTTP::UserAgent",
+        "CSS::Selector::To::XPath",
+        "LibXML"
+    ],
+    "provides"      : {
+        "Web::Scraper"       : "lib/Web/Scraper.pm",
+        "Web::Scraper::Rule" : "lib/Web/Scraper/Rule.pm"
+    },
+    "resources" : [ ],
+    "authors" : [
+        "Lee Aylward"
+    ],
+    "support" : {
+        "bugtracker" : "https://github.com/leedo/raku-web-scraper/issues",
+        "source"     : "https://github.com/leedo/raku-web-scraper.git"
+    },
+    "tags" : [
+        "web",
+        "scrape"
+    ]
+}
